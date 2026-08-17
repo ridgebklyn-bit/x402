@@ -6,9 +6,9 @@ import { server, evmAddress, BATCH_NETWORK } from "../../../proxy";
 
 // A cheap "heartbeat" endpoint meant to be called many times in a session
 // (status polling, live metrics, etc). This is the shape batch-settlement is
-// built for: instead of settling $0.0001 on-chain for every single call
-// (exact scheme) or authorizing a per-call max (upto scheme), the buyer opens
-// one payment channel and each call just adds a signed voucher to it. A
+// built for: instead of settling on-chain for every single call (exact
+// scheme) or authorizing a per-call max (upto scheme), the buyer opens one
+// payment channel and each call just adds a signed voucher to it. A
 // background job (see app/api/cron/settle) periodically claims and settles
 // many accumulated vouchers across channels in one batch of on-chain
 // transactions instead of one per request.
@@ -21,7 +21,14 @@ const handler = async () => NextResponse.json({ pong: true, ts: Date.now() });
 const pingRouteConfig: RouteConfig = {
     accepts: {
       scheme: "batch-settlement",
-      price: "$0.0001", // per-call maximum charged against the channel
+      // The client's BatchSettlementEvmScheme computes the channel deposit
+      // as depositMultiplier (default 5) x price. At price "$0.0001" that's
+      // a $0.0005 deposit, which the CDP mainnet facilitator rejected with
+      // error: "amount_too_low" (no documented minimum found — the free
+      // testnet facilitator accepted this same size, so the floor is
+      // mainnet-specific). Bumped to "$0.001" -> $0.005 default deposit,
+      // safely above the observed threshold.
+      price: "$0.001", // per-call maximum charged against the channel
       network: BATCH_NETWORK,
       payTo: evmAddress,
     },

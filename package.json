@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "keys:generate": "node scripts/generate-keys.mjs",
-    "pay": "node scripts/pay-client.mjs"
+    "pay": "node scripts/pay-client.mjs",
+    "approve:permit2": "node scripts/approve-permit2.mjs"
   },
   "dependencies": {
     "@coinbase/cdp-sdk": "^1.55.0",
@@ -23,7 +24,8 @@
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "redis": "^6.2.1"
+    "redis": "^6.2.1",
+    "viem": "^2.55.16"
   },
   "devDependencies": {
     "@types/node": "^20",

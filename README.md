@@ -22,7 +22,7 @@ Beyond those four flagship examples, this server monetizes **17 additional endpo
 
 Every payment attempt across all routes also flows through a shared set of **lifecycle hooks** (`onBeforeVerify` / `onAfterVerify` / `onVerifyFailure` / `onBeforeSettle` / `onAfterSettle` / `onSettleFailure` / `onVerifiedPaymentCanceled`, registered on the `x402ResourceServer` in `proxy.ts`) that log structured, greppable lines to Vercel's runtime logs — see "Observability: lifecycle hooks" below.
 
-Also included: `scripts/generate-keys.mjs` (creates a throwaway test buyer wallet) and `scripts/pay-client.mjs` (a real x402 buyer client that pays and retries) — see "Testing the payment flow" below.
+Also included: `scripts/generate-keys.mjs` (creates a throwaway test buyer wallet), `scripts/pay-client.mjs` (a real x402 buyer client that pays and retries), and `scripts/approve-permit2.mjs` (one-time Permit2 approval needed before a wallet's first `upto`-scheme payment) — see "Testing the payment flow" below.
 
 ## All monetized endpoints
 
@@ -36,7 +36,7 @@ All routes accept `GET` requests, price in USDC (`exact` scheme unless noted), a
 | `/api/weather` | $0.001 | fixed price, real live data (Open-Meteo) |
 | `/api/generate` | up to $0.05 | usage-based pricing (`upto` scheme) |
 | `/api/insights` | $0.001 / $0.005 | dynamic per-request pricing |
-| `/api/ping` | ~$0.0006 | `batch-settlement` micropayment channels |
+| `/api/ping` | ~$0.006 | `batch-settlement` micropayment channels |
 
 **Data endpoints** (prediction markets, DeFi, crypto market data, web search — the categories driving the most real volume across the x402 ecosystem today):
 
@@ -126,7 +126,12 @@ You should see `402 Payment Required` with a `payment-required` header — base6
    - Solana Devnet SOL: https://faucet.solana.com
    - Testnet USDC (both chains): https://faucet.circle.com
 
-3. Run the paying client against your server:
+3. `/api/generate` uses the **`upto`** scheme, which moves funds through the canonical Permit2 contract instead of the EIP-3009 `transferWithAuthorization` the `exact` scheme uses. That means your wallet needs a one-time on-chain approval before its first `upto` payment will settle — otherwise the facilitator rejects it with a permit2/allowance error during simulation (`exact` and `batch-settlement` routes don't need this):
+   ```bash
+   npm run approve:permit2 -- "http://localhost:3000/api/generate"
+   ```
+
+4. Run the paying client against your server:
    ```bash
    npm run pay -- "http://localhost:3000/api/weather?city=Austin"
    npm run pay -- "http://localhost:3000/api/generate?prompt=tell+me+something"
@@ -154,6 +159,8 @@ This project was built in a sandboxed environment whose outbound network is rest
 - `GET /api/cron/settle` (hit directly, standing in for the scheduled cron trigger) → `claim()` recorded the voucher, and after fixing the claim/settle race described in "Batch settlement" above, `settle()` transferred the claimed $0.0001 to the seller wallet. On-chain: a `settle(receiver, token)` call — [confirmed via Blockscout](https://base-sepolia.blockscout.com/tx/0x1999af43d230e4a15fae4ef62555ea8b8ffcf7baae1e755d66dcfbc6c18de224).
 
 That's all three schemes (`exact`, `upto`, `batch-settlement`) confirmed working end-to-end against the real x402.org facilitator and real Base Sepolia infrastructure — 402 issuance, signature-based payment, facilitator verification, and on-chain settlement, including the full channel lifecycle (deposit → voucher → claim → settle) for batch-settlement.
+
+**Mainnet note (`/api/ping`):** the CDP mainnet facilitator enforces a minimum channel deposit that the testnet facilitator above did not. `BatchSettlementEvmScheme`'s client computes `deposit = depositMultiplier (default 5) x price`, so the original `price: "$0.0001"` produced a $0.0005 deposit, rejected with `error: "amount_too_low"` (no documented minimum found; CDP does mention a $0.001-per-settlement fee starting January 2026, which is likely related). Fixed by raising the route's `price` to `"$0.001"` (→ a $0.005 default deposit) — confirmed settling on Base mainnet.
 
 ## Going to mainnet
 
@@ -284,6 +291,7 @@ app/
 scripts/
   generate-keys.mjs         # generates a throwaway EVM + Solana test buyer wallet
   pay-client.mjs            # real x402 buyer client (@x402/fetch) — pays and retries automatically
+  approve-permit2.mjs       # one-time on-chain Permit2 approval, required before a wallet's first "upto" payment
 .env.local.example          # copy to .env.local and fill in your addresses / test keys
 ```
 
