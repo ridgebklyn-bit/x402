@@ -61,7 +61,10 @@ export const GET = withX402(
       network: EVM_NETWORK, // Base mainnet on X402_NETWORK=mainnet, else Base Sepolia
       payTo: evmAddress,
     },
-    resource: "/api/insights",
+    // Must be an absolute https:// URL — the Bazaar discovery extension
+    // rejects registration otherwise ("resource must start with 'https://'
+    // when protocol type is http").
+    resource: "https://x402tap.com/api/insights",
     description: "Trend insights for a topic, with a premium tier for the full breakdown",
     mimeType: "application/json",
     serviceName: "x402 Trend Insights",

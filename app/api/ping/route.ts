@@ -23,7 +23,10 @@ export const GET = withX402(
       network: BATCH_NETWORK,
       payTo: evmAddress,
     },
-    resource: "/api/ping",
+    // Must be an absolute https:// URL — the Bazaar discovery extension
+    // rejects registration otherwise ("resource must start with 'https://'
+    // when protocol type is http").
+    resource: "https://x402tap.com/api/ping",
     description: "Heartbeat endpoint billed via a batch-settlement payment channel",
     mimeType: "application/json",
     serviceName: "x402 Heartbeat",

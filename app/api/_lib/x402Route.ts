@@ -39,7 +39,8 @@ export type X402RouteConfig = {
   discovery: DiscoveryOptions;
 };
 
-const ICON_URL = "https://x402tap.com/icon.png";
+const BASE_URL = "https://x402tap.com";
+const ICON_URL = `${BASE_URL}/icon.png`;
 
 export function createX402Route(config: X402RouteConfig) {
   const wrapped = async (request: NextRequest): Promise<NextResponse> => {
@@ -64,7 +65,11 @@ export function createX402Route(config: X402RouteConfig) {
         { scheme: "exact", price: config.price, network: EVM_NETWORK, payTo: evmAddress },
         { scheme: "exact", price: config.price, network: SVM_NETWORK, payTo: svmAddress },
       ],
-      resource: config.resource,
+      // The Bazaar discovery extension rejects registration unless this is an
+      // absolute https:// URL ("resource must start with 'https://' when
+      // protocol type is http") — each route file still passes a short
+      // relative path like "/api/weather" for readability, resolved here.
+      resource: `${BASE_URL}${config.resource}`,
       description: config.description,
       mimeType: "application/json",
       serviceName: config.serviceName,

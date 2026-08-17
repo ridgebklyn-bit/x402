@@ -183,7 +183,10 @@ export const GET = withX402(
         payTo: svmAddress,
       },
     ],
-    resource: "/api/weather",
+    // Must be an absolute https:// URL — the Bazaar discovery extension
+    // rejects registration otherwise ("resource must start with 'https://'
+    // when protocol type is http").
+    resource: "https://x402tap.com/api/weather",
     description: "Live current weather conditions for any city, sourced from Open-Meteo",
     mimeType: "application/json",
     // Catalog metadata (see docs.x402.org/extensions/bazaar#quickstart-for-sellers):

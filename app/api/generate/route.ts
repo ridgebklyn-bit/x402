@@ -50,7 +50,10 @@ export const GET = withX402(
       network: EVM_NETWORK, // Base mainnet on X402_NETWORK=mainnet, else Base Sepolia — upto is EVM-only today
       payTo: evmAddress,
     },
-    resource: "/api/generate",
+    // Must be an absolute https:// URL — the Bazaar discovery extension
+    // rejects registration otherwise ("resource must start with 'https://'
+    // when protocol type is http").
+    resource: "https://x402tap.com/api/generate",
     description: "Usage-based text generation, billed by output length (max $0.05/request)",
     mimeType: "application/json",
     serviceName: "x402 Text Generator",
