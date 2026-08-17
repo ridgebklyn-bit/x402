@@ -1,0 +1,46 @@
+{
+  "name": "microtap-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for MicroTap (x402tap.com) — 19 pay-per-call x402 APIs (prediction markets, DeFi, crypto, multi-chain on-chain data, weather, web search). Install into Claude Desktop, Claude Code, Cursor, or Windsurf; pay per call in USDC on Base, no signup or API key.",
+  "type": "module",
+  "bin": {
+    "microtap-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "x402",
+    "usdc",
+    "micropayments",
+    "ai-agents",
+    "claude",
+    "cursor"
+  ],
+  "author": "swaltersjr@gmail.com",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@x402/core": "^2.22.0",
+    "@x402/evm": "^2.22.0",
+    "@x402/fetch": "^2.22.0",
+    "viem": "^2.55.18",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.3"
+  }
+}
