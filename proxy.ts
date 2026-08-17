@@ -6,8 +6,12 @@ import { BatchSettlementEvmScheme } from "@x402/evm/batch-settlement/server";
 import { InMemoryChannelStorage } from "@x402/evm/batch-settlement/server";
 import { RedisChannelStorage } from "@x402/evm/batch-settlement/server/redis-storage";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
-import { bazaarResourceServerExtension } from "@x402/extensions/bazaar";
-import { createOfferReceiptExtension, createEIP712OfferReceiptIssuer } from "@x402/extensions/offer-receipt";
+import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
+import {
+  createOfferReceiptExtension,
+  createEIP712OfferReceiptIssuer,
+  declareOfferReceiptExtension,
+} from "@x402/extensions/offer-receipt";
 import { createCdpFacilitatorClient } from "@coinbase/cdp-sdk/x402";
 import { privateKeyToAccount } from "viem/accounts";
 import { getRedisChannelStorageClient } from "./lib/redis-channel-storage";
@@ -275,8 +279,30 @@ export const proxy = paymentProxy(
           payTo: svmAddress,
         },
       ],
+      // Must be an absolute https:// URL, same rule as every route.ts-based
+      // route — the Bazaar discovery extension rejects registration
+      // otherwise ("resource must start with 'https://' when protocol type
+      // is http").
+      resource: "https://x402tap.com/protected",
       description: "Premium content",
       mimeType: "text/html",
+      serviceName: "x402 Protected Content",
+      tags: ["demo", "content", "middleware"],
+      iconUrl: "https://x402tap.com/icon.png",
+      // Middleware-protected routes (paymentProxy) never declared a Bazaar
+      // discovery extension before — every route.ts-based route passes this
+      // via withX402/createX402Route, but /protected is gated purely by
+      // this proxy config, so it needs its own explicit declaration. Found
+      // missing via agentic.market's validator: "no bazaar discovery
+      // extension found".
+      extensions: {
+        ...declareDiscoveryExtension({
+          output: {
+            example: { message: "Payment verified — protected HTML content unlocked." },
+          },
+        }),
+        ...declareOfferReceiptExtension({ includeTxHash: true }),
+      },
     },
   },
   server,
