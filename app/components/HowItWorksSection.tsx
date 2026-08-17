@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 
@@ -101,12 +101,13 @@ function StepRow({
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { margin: "-35% 0px -35% 0px" });
 
-  if (inView) {
-    // Calling setState-via-parent during render's inView read is safe here
-    // because useInView itself already batches through an effect internally;
-    // this just forwards the result up without an extra render pass.
-    onEnter(index);
-  }
+  // Forward the intersection result to the parent from an effect, not
+  // during render — calling a parent state setter mid-render forces React
+  // to throw away and redo the in-progress render pass, which on a
+  // scroll-driven observer firing rapidly is what produced the jank.
+  useEffect(() => {
+    if (inView) onEnter(index);
+  }, [inView, index, onEnter]);
 
   return (
     <div ref={ref} className="flex gap-4 py-5 sm:gap-5">

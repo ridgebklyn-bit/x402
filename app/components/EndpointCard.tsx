@@ -79,24 +79,21 @@ export default function EndpointCard({ endpoint, flagship = false }: { endpoint:
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         className="group relative rounded-2xl"
       >
-        {/* Border-beam: a rotating conic-gradient ring, revealed only on
-            hover/focus via opacity so it costs nothing while idle. */}
+        {/* Hover border: a static two-tone gradient ring rendered with a
+            mask-composite trick (paint the gradient, then cut out
+            everything but a 1px ring). Fades in via opacity only — no
+            continuous animation loop running on all 19 cards at once. The
+            pointer-reactive sheen below supplies the "light" motion instead. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-px overflow-hidden rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
-        >
-          {/* Sized generously beyond the card and centered, so the rotating
-              conic-gradient's corners sweep past behind the clip — the
-              parent's overflow-hidden trims it down to just a beam gliding
-              around the card's rounded edge instead of a diamond blowout. */}
-          <div
-            className="absolute left-1/2 top-1/2 aspect-square w-[180%] -translate-x-1/2 -translate-y-1/2 animate-border-beam"
-            style={{
-              background:
-                "conic-gradient(from 0deg, transparent 0%, var(--color-accent) 6%, transparent 16%, var(--color-purple) 28%, transparent 38%, transparent 100%)",
-            }}
-          />
-        </div>
+          className="pointer-events-none absolute -inset-px rounded-2xl p-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
+          style={{
+            background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-purple) 100%)",
+            WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude",
+          }}
+        />
 
         <div
           className={`relative overflow-hidden rounded-2xl border p-5 transition-colors duration-300 ${
@@ -112,7 +109,7 @@ export default function EndpointCard({ endpoint, flagship = false }: { endpoint:
             style={{
               background: useTransform(
                 [glowX, glowY],
-                ([gx, gy]) => `radial-gradient(280px circle at ${gx} ${gy}, rgba(61,123,255,0.10), transparent 70%)`,
+                ([gx, gy]) => `radial-gradient(320px circle at ${gx} ${gy}, rgba(61,123,255,0.14), transparent 70%)`,
               ),
             }}
           />

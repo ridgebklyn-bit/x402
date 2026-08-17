@@ -212,20 +212,20 @@ export default function Home() {
                 x402 payment protocol · Base + Solana
               </span>
 
-              <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight text-text-primary sm:text-5xl lg:text-[3.4rem]">
+              <h1 className="mt-6 text-4xl font-semibold leading-[1.15] tracking-tight text-text-primary sm:text-5xl lg:text-[3.4rem]">
                 APIs your agent can{" "}
                 <span className="bg-gradient-to-r from-accent-strong via-accent to-purple bg-clip-text text-transparent">
                   pay for by the request.
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
                 No API keys, no signups, no subscriptions. Every route here is metered in USDC —
                 call it, get an HTTP 402 with the price, sign a payment, and the data comes back.
                 Built on the open x402 protocol and discoverable through the CDP Bazaar.
               </p>
 
-              <div className="mt-7 flex flex-wrap items-center gap-3">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <a
                   href="#endpoints"
                   className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-accent/20 transition-colors hover:bg-accent-strong"

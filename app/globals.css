@@ -29,19 +29,10 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
-  --animate-border-beam: border-beam 3.2s linear infinite;
   --animate-pulse-dot: pulse-dot 1.8s ease-in-out infinite;
   --animate-float-slow: float-slow 7s ease-in-out infinite;
   --animate-grid-drift: grid-drift 22s linear infinite;
 
-  @keyframes border-beam {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
   @keyframes pulse-dot {
     0%,
     100% {
@@ -64,10 +55,10 @@
   }
   @keyframes grid-drift {
     0% {
-      background-position: 0 0;
+      transform: translate3d(0, 0, 0);
     }
     100% {
-      background-position: 64px 64px;
+      transform: translate3d(-64px, -64px, 0);
     }
   }
 }
