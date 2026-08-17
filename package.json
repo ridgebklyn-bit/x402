@@ -1,0 +1,36 @@
+{
+  "name": "x402-seller-server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "keys:generate": "node scripts/generate-keys.mjs",
+    "pay": "node scripts/pay-client.mjs"
+  },
+  "dependencies": {
+    "@coinbase/cdp-sdk": "^1.55.0",
+    "@x402/avm": "^2.22.0",
+    "@x402/core": "^2.22.0",
+    "@x402/evm": "^2.22.0",
+    "@x402/extensions": "^2.22.0",
+    "@x402/fetch": "^2.22.0",
+    "@x402/next": "^2.22.0",
+    "@x402/svm": "^2.22.0",
+    "dotenv": "^17.4.2",
+    "next": "16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "redis": "^6.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.1",
+    "typescript": "^5"
+  }
+}
