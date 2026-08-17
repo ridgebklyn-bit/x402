@@ -399,7 +399,23 @@ export default function Home() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-text-muted">
-            <span>MicroTap · x402tap.com — settled on Base mainnet</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span>MicroTap · x402tap.com — settled on Base mainnet</span>
+              <a
+                href="https://x402-list.com/services/x402tap?utm_source=badge&utm_medium=referral&utm_campaign=embed"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex shrink-0 items-center opacity-90 transition-opacity hover:opacity-100"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://x402-list.com/badge/x402tap.svg"
+                  alt="Listed on x402-list"
+                  height={20}
+                  className="h-5 w-auto"
+                />
+              </a>
+            </div>
             <span className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2.5 py-1 font-medium text-success">
               <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-success" />
               {TOTAL_ENDPOINTS} routes live
