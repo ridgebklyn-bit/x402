@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer, type RouteConfig } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { declareOfferReceiptExtension } from "@x402/extensions/offer-receipt";
 import { server, evmAddress, EVM_NETWORK } from "../../../proxy";
@@ -52,9 +52,11 @@ const handler = async (request: NextRequest): Promise<NextResponse<InsightsRespo
 // https://docs.x402.org/advanced-concepts — dynamic/context-based pricing),
 // reading the same `tier` query param the handler uses to shape its
 // response, so the 402's quoted price always matches what gets returned.
-export const GET = withX402(
-  handler,
-  {
+// withX402FromHTTPServer + a literal route key (instead of withX402's
+// hardcoded "*" wildcard) keeps routeTemplate from being reported as
+// ":var1" in the Bazaar catalog, which mismatches our real resource URL
+// and fails third-party validators like agentic.market's.
+const insightsRouteConfig: RouteConfig = {
     accepts: {
       scheme: "exact",
       price: (context) => (context.adapter.getQueryParam?.("tier") === "premium" ? PREMIUM_PRICE : STANDARD_PRICE),
@@ -92,6 +94,7 @@ export const GET = withX402(
       }),
       ...declareOfferReceiptExtension({ includeTxHash: true }),
     },
-  },
-  server,
-);
+};
+
+const insightsHttpServer = new x402HTTPResourceServer(server, { "/api/insights": insightsRouteConfig });
+export const GET = withX402FromHTTPServer(handler, insightsHttpServer);

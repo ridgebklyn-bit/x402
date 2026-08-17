@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer, type RouteConfig } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { declareOfferReceiptExtension } from "@x402/extensions/offer-receipt";
 import { server, evmAddress, svmAddress, EVM_NETWORK, SVM_NETWORK } from "../../../proxy";
@@ -166,9 +166,14 @@ const wrappedHandler = async (
   }
 };
 
-export const GET = withX402(
-  wrappedHandler,
-  {
+// withX402() always registers its route under a hardcoded "*" wildcard key
+// internally, which the Bazaar extension then reports as routeTemplate
+// ":var1" — mismatching our real (literal, param-free) resource URL and
+// failing third-party validators like agentic.market's. Using
+// withX402FromHTTPServer with the actual pathname as the route key avoids
+// the wildcard entirely, so the SDK correctly omits routeTemplate instead
+// of emitting a mismatching placeholder.
+const weatherRouteConfig: RouteConfig = {
     accepts: [
       {
         scheme: "exact",
@@ -225,6 +230,7 @@ export const GET = withX402(
       // includeTxHash makes receipts independently verifiable on-chain.
       ...declareOfferReceiptExtension({ includeTxHash: true }),
     },
-  },
-  server,
-);
+};
+
+const weatherHttpServer = new x402HTTPResourceServer(server, { "/api/weather": weatherRouteConfig });
+export const GET = withX402FromHTTPServer(wrappedHandler, weatherHttpServer);

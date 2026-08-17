@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer, type RouteConfig } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { declareOfferReceiptExtension } from "@x402/extensions/offer-receipt";
 import { server, evmAddress, BATCH_NETWORK } from "../../../proxy";
@@ -14,9 +14,11 @@ import { server, evmAddress, BATCH_NETWORK } from "../../../proxy";
 // transactions instead of one per request.
 const handler = async () => NextResponse.json({ pong: true, ts: Date.now() });
 
-export const GET = withX402(
-  handler,
-  {
+// withX402FromHTTPServer + a literal route key (instead of withX402's
+// hardcoded "*" wildcard) keeps routeTemplate from being reported as
+// ":var1" in the Bazaar catalog, which mismatches our real resource URL
+// and fails third-party validators like agentic.market's.
+const pingRouteConfig: RouteConfig = {
     accepts: {
       scheme: "batch-settlement",
       price: "$0.0001", // per-call maximum charged against the channel
@@ -38,6 +40,7 @@ export const GET = withX402(
       }),
       ...declareOfferReceiptExtension({ includeTxHash: true }),
     },
-  },
-  server,
-);
+};
+
+const pingHttpServer = new x402HTTPResourceServer(server, { "/api/ping": pingRouteConfig });
+export const GET = withX402FromHTTPServer(handler, pingHttpServer);

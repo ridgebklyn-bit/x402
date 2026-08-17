@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer, type RouteConfig } from "@x402/next";
+import type { RoutesConfig } from "@x402/core/server";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { declareOfferReceiptExtension } from "@x402/extensions/offer-receipt";
 import { server, evmAddress, svmAddress, EVM_NETWORK, SVM_NETWORK } from "../../../proxy";
@@ -58,30 +59,37 @@ export function createX402Route(config: X402RouteConfig) {
     }
   };
 
-  return withX402(
-    wrapped,
-    {
-      accepts: [
-        { scheme: "exact", price: config.price, network: EVM_NETWORK, payTo: evmAddress },
-        { scheme: "exact", price: config.price, network: SVM_NETWORK, payTo: svmAddress },
-      ],
-      // The Bazaar discovery extension rejects registration unless this is an
-      // absolute https:// URL ("resource must start with 'https://' when
-      // protocol type is http") — each route file still passes a short
-      // relative path like "/api/weather" for readability, resolved here.
-      resource: `${BASE_URL}${config.resource}`,
-      description: config.description,
-      mimeType: "application/json",
-      serviceName: config.serviceName,
-      tags: config.tags,
-      iconUrl: ICON_URL,
-      extensions: {
-        ...declareDiscoveryExtension(config.discovery),
-        ...declareOfferReceiptExtension({ includeTxHash: true }),
-      },
+  const routeConfig: RouteConfig = {
+    accepts: [
+      { scheme: "exact" as const, price: config.price, network: EVM_NETWORK, payTo: evmAddress },
+      { scheme: "exact" as const, price: config.price, network: SVM_NETWORK, payTo: svmAddress },
+    ],
+    // The Bazaar discovery extension rejects registration unless this is an
+    // absolute https:// URL ("resource must start with 'https://' when
+    // protocol type is http") — each route file still passes a short
+    // relative path like "/api/weather" for readability, resolved here.
+    resource: `${BASE_URL}${config.resource}`,
+    description: config.description,
+    mimeType: "application/json",
+    serviceName: config.serviceName,
+    tags: config.tags,
+    iconUrl: ICON_URL,
+    extensions: {
+      ...declareDiscoveryExtension(config.discovery),
+      ...declareOfferReceiptExtension({ includeTxHash: true }),
     },
-    server,
-  );
+  };
+
+  // withX402() always registers routes under a hardcoded "*" wildcard key
+  // internally, which the Bazaar extension then reports as routeTemplate
+  // ":var1" — that doesn't match our real (literal, param-free) resource
+  // URL and fails third-party validators like agentic.market's. Registering
+  // the actual pathname as the route key here means the pattern has no
+  // wildcard/colon segments, so the SDK correctly omits routeTemplate
+  // instead of emitting a mismatching placeholder.
+  const routes: RoutesConfig = { [config.resource]: routeConfig };
+  const httpServer = new x402HTTPResourceServer(server, routes);
+  return withX402FromHTTPServer(wrapped, httpServer);
 }
 
 // --- Small shared request-parsing helpers used by several routes -----------

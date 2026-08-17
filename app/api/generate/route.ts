@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withX402, setSettlementOverrides } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer, setSettlementOverrides, type RouteConfig } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { declareOfferReceiptExtension } from "@x402/extensions/offer-receipt";
 import { server, evmAddress, EVM_NETWORK } from "../../../proxy";
@@ -41,9 +41,11 @@ const handler = async (request: NextRequest) => {
 
 // withX402 settles the payment only after `handler` returns successfully,
 // using whatever amount setSettlementOverrides recorded on the response.
-export const GET = withX402(
-  handler,
-  {
+// withX402FromHTTPServer + a literal route key (instead of withX402's
+// hardcoded "*" wildcard) keeps routeTemplate from being reported as
+// ":var1" in the Bazaar catalog, which mismatches our real resource URL
+// and fails third-party validators like agentic.market's.
+const generateRouteConfig: RouteConfig = {
     accepts: {
       scheme: "upto",
       price: "$0.05", // maximum the buyer authorizes in a single signature
@@ -78,6 +80,7 @@ export const GET = withX402(
       }),
       ...declareOfferReceiptExtension({ includeTxHash: true }),
     },
-  },
-  server,
-);
+};
+
+const generateHttpServer = new x402HTTPResourceServer(server, { "/api/generate": generateRouteConfig });
+export const GET = withX402FromHTTPServer(handler, generateHttpServer);
