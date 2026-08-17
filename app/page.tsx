@@ -1,6 +1,7 @@
 import CursorGlow from "./components/CursorGlow";
 import GridBackground from "./components/GridBackground";
-import PacketFlowDemo from "./components/PacketFlowDemo";
+import TerminalSession from "./components/TerminalSession";
+import ProtocolPulse from "./components/ProtocolPulse";
 import HowItWorksSection from "./components/HowItWorksSection";
 import EndpointGrid from "./components/EndpointGrid";
 import type { Endpoint } from "./components/EndpointCard";
@@ -258,8 +259,26 @@ export default function Home() {
             </div>
 
             <div className="animate-float-slow">
-              <PacketFlowDemo />
+              <TerminalSession />
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-border/60 py-14 sm:py-20" id="protocol-pulse">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="mb-8 max-w-2xl sm:mb-10">
+              <span className="text-xs font-semibold uppercase tracking-wider text-accent-strong">Protocol pulse</span>
+              <h2 className="mt-2 text-2xl font-semibold text-text-primary sm:text-3xl">
+                x402 doesn&apos;t just run on this server
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-text-secondary sm:text-base">
+                This is real, live activity across the whole x402 ecosystem — every seller, every
+                facilitator — not just traffic to MicroTap. The same open protocol every route on
+                this page speaks.
+              </p>
+            </div>
+
+            <ProtocolPulse />
           </div>
         </section>
 
