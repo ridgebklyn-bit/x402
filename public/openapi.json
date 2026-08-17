@@ -1,0 +1,1644 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "x402tap — pay-per-call API marketplace",
+    "version": "1.0.0",
+    "description": "19 monetized HTTP APIs on the x402 protocol — prediction markets (Polymarket, Kalshi), DeFi/crypto data, multi-chain on-chain reads, live weather, and real-time web search. No API keys or signups: call any route, receive an HTTP 402 with the exact USDC price, sign a payment, retry, and get the data back. Payments settle on Base or Solana mainnet through Coinbase's CDP Facilitator.",
+    "x-guidance": "Every route on this server is a standard GET endpoint that returns HTTP 402 Payment Required when called without payment. The 402 response body's `accepts` array lists the exact USDC amount, network (Base or Solana), and payTo address — sign a payment matching one of those entries and retry the same request with the payment attached (e.g. via @x402/fetch's wrapFetchWithPayment, or any x402-compatible client) to receive the real response. Prices range from $0.001 to $0.05 per call. Query parameters are documented per-operation below; most routes have sensible defaults and can be called with zero or one parameter. No account, API key, or signup is required — payment alone is the access control.",
+    "contact": {
+      "email": "swaltersjr@gmail.com"
+    }
+  },
+  "paths": {
+    "/protected": {
+      "get": {
+        "operationId": "getProtected",
+        "summary": "Protected Content — demo of a whole-route paid page",
+        "description": "Premium HTML content, gated by proxy.ts middleware. Demonstrates page-level (not just API-level) x402 protection.",
+        "tags": [
+          "demo",
+          "content",
+          "middleware"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.001"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "message": "Payment verified — protected HTML content unlocked."
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        }
+      }
+    },
+    "/api/weather": {
+      "get": {
+        "operationId": "getWeather",
+        "summary": "Weather — live current conditions for any city",
+        "description": "Live current weather conditions for any city, sourced from Open-Meteo.",
+        "tags": [
+          "weather",
+          "forecast",
+          "api",
+          "data",
+          "live"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.001"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "observedAt": {
+                      "type": "string"
+                    },
+                    "report": {
+                      "type": "object"
+                    },
+                    "source": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "location": "Austin, Texas, United States",
+                    "observedAt": "2026-08-15T12:00",
+                    "report": {
+                      "weather": "partly cloudy",
+                      "temperature": 91,
+                      "feelsLike": 94,
+                      "humidityPercent": 48,
+                      "windMph": 7
+                    },
+                    "source": "open-meteo.com"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "description": "City name to fetch live current weather for (defaults to New York)",
+            "schema": {
+              "type": "string",
+              "description": "City name to fetch live current weather for (defaults to New York)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/generate": {
+      "get": {
+        "operationId": "getGenerate",
+        "summary": "Text Generator — usage-based text generation",
+        "description": "Usage-based text generation, billed by output length (max $0.05/request). Uses the x402 \"upto\" scheme: buyer authorizes a maximum in one signature, actual charge is computed from output length.",
+        "tags": [
+          "ai",
+          "text-generation",
+          "llm",
+          "content",
+          "usage-based"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "dynamic",
+            "currency": "USD",
+            "min": "0.0001",
+            "max": "0.05"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "prompt": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "billedCharacters": {
+                      "type": "number"
+                    }
+                  },
+                  "example": {
+                    "prompt": "tell me something interesting",
+                    "text": "Generated insight #1 about \"tell me something interesting\".",
+                    "billedCharacters": 62
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "prompt",
+            "in": "query",
+            "required": true,
+            "description": "Text prompt to generate insights about",
+            "schema": {
+              "type": "string",
+              "description": "Text prompt to generate insights about"
+            }
+          }
+        ]
+      }
+    },
+    "/api/insights": {
+      "get": {
+        "operationId": "getInsights",
+        "summary": "Trend Insights — tiered topic insights",
+        "description": "Trend insights for a topic, with a premium tier for the full breakdown. standard = $0.001, premium = $0.005.",
+        "tags": [
+          "insights",
+          "trends",
+          "analytics",
+          "data",
+          "tiered-pricing"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "dynamic",
+            "currency": "USD",
+            "min": "0.001",
+            "max": "0.005"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "topic": {
+                      "type": "string"
+                    },
+                    "tier": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "number"
+                    },
+                    "momentum": {
+                      "type": "string"
+                    },
+                    "relatedTrends": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "topic": "ai agents",
+                    "tier": "premium",
+                    "score": 87,
+                    "momentum": "+14% WoW",
+                    "relatedTrends": [
+                      "x402",
+                      "agentic commerce",
+                      "mcp"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "query",
+            "required": true,
+            "description": "Topic to fetch trend insights for",
+            "schema": {
+              "type": "string",
+              "description": "Topic to fetch trend insights for"
+            }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "required": false,
+            "description": "standard = $0.001, premium = $0.005",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "premium"
+              ],
+              "description": "standard = $0.001, premium = $0.005"
+            }
+          }
+        ]
+      }
+    },
+    "/api/ping": {
+      "get": {
+        "operationId": "getPing",
+        "summary": "Heartbeat — cheap repeatable ping",
+        "description": "Heartbeat endpoint billed via a batch-settlement payment channel (with an exact-scheme fallback). Meant to be called many times in a session.",
+        "tags": [
+          "heartbeat",
+          "monitoring",
+          "micropayments",
+          "batch-settlement"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.001"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pong": {
+                      "type": "boolean"
+                    },
+                    "ts": {
+                      "type": "number"
+                    }
+                  },
+                  "example": {
+                    "pong": true,
+                    "ts": 1700000000000
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        }
+      }
+    },
+    "/api/polymarket-markets": {
+      "get": {
+        "operationId": "getPolymarketMarkets",
+        "summary": "Polymarket Markets — search/list active markets",
+        "description": "Search or list active Polymarket prediction markets, ranked by 24h volume.",
+        "tags": [
+          "prediction-markets",
+          "polymarket",
+          "crypto",
+          "finance",
+          "trading"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.003"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "number"
+                    },
+                    "markets": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "query": "election",
+                    "count": 1,
+                    "markets": [
+                      {
+                        "slug": "example-market",
+                        "question": "Example prediction market?",
+                        "outcomes": [
+                          "Yes",
+                          "No"
+                        ],
+                        "outcomePrices": [
+                          0.62,
+                          0.38
+                        ],
+                        "volume24hr": 12345.67,
+                        "volumeTotal": 987654.32,
+                        "liquidity": 45678.9,
+                        "endDate": "2026-12-31T00:00:00Z",
+                        "active": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Optional keyword filter on the market question",
+            "schema": {
+              "type": "string",
+              "description": "Optional keyword filter on the market question"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Max markets to return, 1-50 (default 10)",
+            "schema": {
+              "type": "string",
+              "description": "Max markets to return, 1-50 (default 10)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/polymarket-market": {
+      "get": {
+        "operationId": "getPolymarketMarket",
+        "summary": "Polymarket Market Detail — single market by slug",
+        "description": "Get full detail (prices, volume, liquidity, resolution) for a single Polymarket market by slug.",
+        "tags": [
+          "prediction-markets",
+          "polymarket",
+          "crypto",
+          "finance",
+          "trading"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.002"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "slug": {
+                      "type": "string"
+                    },
+                    "question": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "outcomes": {
+                      "type": "array"
+                    },
+                    "outcomePrices": {
+                      "type": "array"
+                    },
+                    "volume24hr": {
+                      "type": "number"
+                    },
+                    "volume1wk": {
+                      "type": "number"
+                    },
+                    "volumeTotal": {
+                      "type": "number"
+                    },
+                    "liquidity": {
+                      "type": "number"
+                    },
+                    "endDate": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "closed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "example": {
+                    "slug": "xi-jinping-out-before-2027",
+                    "question": "Xi Jinping out before 2027?",
+                    "description": "This market will resolve to \"Yes\" if...",
+                    "outcomes": [
+                      "Yes",
+                      "No"
+                    ],
+                    "outcomePrices": [
+                      0.0445,
+                      0.9555
+                    ],
+                    "volume24hr": 23665.67,
+                    "volume1wk": 122625.33,
+                    "volumeTotal": 12084934.95,
+                    "liquidity": 233436.44,
+                    "endDate": "2026-12-31T00:00:00Z",
+                    "active": true,
+                    "closed": false
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "query",
+            "required": true,
+            "description": "Polymarket market slug (from the URL or /api/polymarket-markets)",
+            "schema": {
+              "type": "string",
+              "description": "Polymarket market slug (from the URL or /api/polymarket-markets)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/kalshi-markets": {
+      "get": {
+        "operationId": "getKalshiMarkets",
+        "summary": "Kalshi Markets — search/list open markets",
+        "description": "Search or list open Kalshi prediction markets (regulated US event contracts).",
+        "tags": [
+          "prediction-markets",
+          "kalshi",
+          "finance",
+          "trading",
+          "events"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.003"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "number"
+                    },
+                    "markets": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "query": "fed rate",
+                    "count": 1,
+                    "markets": [
+                      {
+                        "ticker": "KXEXAMPLE-99",
+                        "eventTicker": "KXEXAMPLE-99",
+                        "title": "Example Kalshi market?",
+                        "yesBid": 0.1,
+                        "yesAsk": 0.12,
+                        "lastPrice": 0.12,
+                        "volume24h": 174.62,
+                        "liquidity": 0,
+                        "closeTime": "2099-08-01T04:59:00Z",
+                        "status": "active"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Optional keyword filter on the market title",
+            "schema": {
+              "type": "string",
+              "description": "Optional keyword filter on the market title"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Max markets to return, 1-50 (default 10)",
+            "schema": {
+              "type": "string",
+              "description": "Max markets to return, 1-50 (default 10)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/kalshi-market": {
+      "get": {
+        "operationId": "getKalshiMarket",
+        "summary": "Kalshi Market Detail — single market by ticker",
+        "description": "Get full detail (yes/no prices, volume, status, result) for a single Kalshi market by ticker.",
+        "tags": [
+          "prediction-markets",
+          "kalshi",
+          "finance",
+          "trading",
+          "events"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.002"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ticker": {
+                      "type": "string"
+                    },
+                    "eventTicker": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "yesSubTitle": {
+                      "type": "null"
+                    },
+                    "noSubTitle": {
+                      "type": "string"
+                    },
+                    "yesBid": {
+                      "type": "number"
+                    },
+                    "yesAsk": {
+                      "type": "number"
+                    },
+                    "noBid": {
+                      "type": "number"
+                    },
+                    "noAsk": {
+                      "type": "number"
+                    },
+                    "lastPrice": {
+                      "type": "number"
+                    },
+                    "volume": {
+                      "type": "number"
+                    },
+                    "volume24h": {
+                      "type": "number"
+                    },
+                    "liquidity": {
+                      "type": "number"
+                    },
+                    "openTime": {
+                      "type": "string"
+                    },
+                    "closeTime": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "null"
+                    }
+                  },
+                  "example": {
+                    "ticker": "KXELONMARS-99",
+                    "eventTicker": "KXELONMARS-99",
+                    "title": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                    "yesSubTitle": null,
+                    "noSubTitle": "Mars",
+                    "yesBid": 0.1,
+                    "yesAsk": 0.12,
+                    "noBid": 0.88,
+                    "noAsk": 0.9,
+                    "lastPrice": 0.12,
+                    "volume": 117134.08,
+                    "volume24h": 174.62,
+                    "liquidity": 0,
+                    "openTime": "2025-08-28T20:45:00Z",
+                    "closeTime": "2099-08-01T04:59:00Z",
+                    "status": "active",
+                    "result": null
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": true,
+            "description": "Kalshi market ticker (from /api/kalshi-markets)",
+            "schema": {
+              "type": "string",
+              "description": "Kalshi market ticker (from /api/kalshi-markets)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/defi-tvl": {
+      "get": {
+        "operationId": "getDefiTvl",
+        "summary": "DeFi Protocol TVL — by chain, plus market cap",
+        "description": "Look up a DeFi protocol's current total value locked (TVL), by chain, plus market cap.",
+        "tags": [
+          "defi",
+          "crypto",
+          "tvl",
+          "finance",
+          "on-chain"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.003"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "symbol": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "chains": {
+                      "type": "array"
+                    },
+                    "tvlUsd": {
+                      "type": "number"
+                    },
+                    "asOf": {
+                      "type": "string"
+                    },
+                    "tvlByChain": {
+                      "type": "object"
+                    },
+                    "marketCapUsd": {
+                      "type": "number"
+                    }
+                  },
+                  "example": {
+                    "name": "Uniswap",
+                    "symbol": "UNI",
+                    "url": "https://uniswap.org/",
+                    "chains": [
+                      "Ethereum",
+                      "Base",
+                      "Arbitrum"
+                    ],
+                    "tvlUsd": 2922032778,
+                    "asOf": "2026-08-16T00:00:00.000Z",
+                    "tvlByChain": {
+                      "Ethereum": 1800000000,
+                      "Base": 400000000
+                    },
+                    "marketCapUsd": 5200000000
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "query",
+            "required": true,
+            "description": "DefiLlama protocol slug, e.g. \"uniswap\", \"aave\"",
+            "schema": {
+              "type": "string",
+              "description": "DefiLlama protocol slug, e.g. \"uniswap\", \"aave\""
+            }
+          }
+        ]
+      }
+    },
+    "/api/defi-chains": {
+      "get": {
+        "operationId": "getDefiChains",
+        "summary": "DeFi Chain TVL Ranking — chains by total DeFi TVL",
+        "description": "Rank blockchains by total DeFi value locked (TVL) across all protocols.",
+        "tags": [
+          "defi",
+          "crypto",
+          "tvl",
+          "finance",
+          "on-chain",
+          "blockchain"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.002"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "chains": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "count": 2,
+                    "chains": [
+                      {
+                        "rank": 1,
+                        "chain": "Ethereum",
+                        "tokenSymbol": "ETH",
+                        "tvlUsd": 65000000000
+                      },
+                      {
+                        "rank": 2,
+                        "chain": "Solana",
+                        "tokenSymbol": "SOL",
+                        "tvlUsd": 8500000000
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Number of top chains to return, 1-100 (default 15)",
+            "schema": {
+              "type": "string",
+              "description": "Number of top chains to return, 1-100 (default 15)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/crypto-price": {
+      "get": {
+        "operationId": "getCryptoPrice",
+        "summary": "Crypto Price Lookup — price, 24h change, market cap",
+        "description": "Look up current price, 24h change, and market cap for one or more cryptocurrencies.",
+        "tags": [
+          "crypto",
+          "price",
+          "finance",
+          "market-data"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.001"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vs": {
+                      "type": "string"
+                    },
+                    "prices": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "vs": "usd",
+                    "prices": [
+                      {
+                        "id": "bitcoin",
+                        "price": 63151,
+                        "change24hPct": -0.2,
+                        "marketCap": 1267177736333
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated CoinGecko coin ids, e.g. \"bitcoin,ethereum\"",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated CoinGecko coin ids, e.g. \"bitcoin,ethereum\""
+            }
+          },
+          {
+            "name": "vs",
+            "in": "query",
+            "required": false,
+            "description": "Quote currency, e.g. \"usd\", \"eur\" (default usd)",
+            "schema": {
+              "type": "string",
+              "description": "Quote currency, e.g. \"usd\", \"eur\" (default usd)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/crypto-market": {
+      "get": {
+        "operationId": "getCryptoMarket",
+        "summary": "Crypto Market Data — rank, 24h high/low, volume, ATH",
+        "description": "Rich market data for one or more cryptocurrencies: rank, 24h high/low, volume, ATH, and more.",
+        "tags": [
+          "crypto",
+          "market-data",
+          "finance",
+          "trading"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.002"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vs": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "number"
+                    },
+                    "coins": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "vs": "usd",
+                    "count": 1,
+                    "coins": [
+                      {
+                        "id": "bitcoin",
+                        "symbol": "btc",
+                        "name": "Bitcoin",
+                        "rank": 1,
+                        "price": 63151,
+                        "marketCap": 1267177736333,
+                        "volume24h": 28123456789,
+                        "high24h": 63980,
+                        "low24h": 61890,
+                        "change24hPct": -0.2,
+                        "circulatingSupply": 19780000,
+                        "athPrice": 108786,
+                        "athChangePct": -41.9
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated CoinGecko coin ids, e.g. \"bitcoin,ethereum\"",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated CoinGecko coin ids, e.g. \"bitcoin,ethereum\""
+            }
+          },
+          {
+            "name": "vs",
+            "in": "query",
+            "required": false,
+            "description": "Quote currency, e.g. \"usd\", \"eur\" (default usd)",
+            "schema": {
+              "type": "string",
+              "description": "Quote currency, e.g. \"usd\", \"eur\" (default usd)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/crypto-trending": {
+      "get": {
+        "operationId": "getCryptoTrending",
+        "summary": "Crypto Trending — top trending coins right now",
+        "description": "Get the top trending cryptocurrencies right now, ranked by search interest.",
+        "tags": [
+          "crypto",
+          "trending",
+          "market-data",
+          "finance"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.001"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "coins": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "count": 1,
+                    "coins": [
+                      {
+                        "id": "pepe",
+                        "name": "Pepe",
+                        "symbol": "PEPE",
+                        "marketCapRank": 28,
+                        "priceUsd": 0.0000091,
+                        "change24hPct": 5.3,
+                        "marketCap": "$3.8B",
+                        "volume24h": "$412M"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        }
+      }
+    },
+    "/api/web-search": {
+      "get": {
+        "operationId": "getWebSearch",
+        "summary": "Web Search — real-time ranked results via Exa",
+        "description": "Real-time web search (via Exa) — ranked results with title, URL, published date, author, and relevance score for a query.",
+        "tags": [
+          "search",
+          "web-search",
+          "data",
+          "ai"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.003"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "autopromptString": {
+                      "type": "null"
+                    },
+                    "results": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "query": "Base blockchain",
+                    "autopromptString": null,
+                    "results": [
+                      {
+                        "title": "Base (blockchain) - Wikipedia",
+                        "url": "https://en.wikipedia.org/wiki/Base_(blockchain)",
+                        "publishedDate": "2023-08-09",
+                        "author": null,
+                        "score": 0.87
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Search query",
+            "schema": {
+              "type": "string",
+              "description": "Search query"
+            }
+          },
+          {
+            "name": "numResults",
+            "in": "query",
+            "required": false,
+            "description": "Number of results to return (1-10, default 5)",
+            "schema": {
+              "type": "integer",
+              "description": "Number of results to return (1-10, default 5)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/rpc": {
+      "get": {
+        "operationId": "getRpc",
+        "summary": "Multi-Chain RPC — safelisted read-only JSON-RPC proxy",
+        "description": "Safelisted read-only JSON-RPC proxy across major EVM chains (base, ethereum, polygon, arbitrum, optimism) — eth_call, eth_getBalance, eth_getTransactionReceipt, eth_getBlockByNumber, and more.",
+        "tags": [
+          "rpc",
+          "ethereum",
+          "on-chain",
+          "blockchain",
+          "infrastructure"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.003"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chain": {
+                      "type": "string"
+                    },
+                    "method": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "chain": "Base",
+                    "method": "eth_blockNumber",
+                    "result": "0x1234567"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "query",
+            "required": false,
+            "description": "Chain to query: base, ethereum, polygon, arbitrum, optimism (default base)",
+            "schema": {
+              "type": "string",
+              "description": "Chain to query: base, ethereum, polygon, arbitrum, optimism (default base)"
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": true,
+            "description": "Read-only JSON-RPC method name, e.g. eth_getBalance, eth_call, eth_blockNumber",
+            "schema": {
+              "type": "string",
+              "description": "Read-only JSON-RPC method name, e.g. eth_getBalance, eth_call, eth_blockNumber"
+            }
+          },
+          {
+            "name": "params",
+            "in": "query",
+            "required": false,
+            "description": "JSON-encoded array of RPC params, e.g. [\"0xabc...\",\"latest\"] (default [])",
+            "schema": {
+              "type": "string",
+              "description": "JSON-encoded array of RPC params, e.g. [\"0xabc...\",\"latest\"] (default [])"
+            }
+          }
+        ]
+      }
+    },
+    "/api/wallet-balance": {
+      "get": {
+        "operationId": "getWalletBalance",
+        "summary": "Wallet Balance Lookup — native + ERC-20 balance",
+        "description": "Native and (optional) ERC-20 token balance for a wallet address across major EVM chains (base, ethereum, polygon, arbitrum, optimism).",
+        "tags": [
+          "wallet",
+          "balance",
+          "ethereum",
+          "on-chain",
+          "blockchain",
+          "erc20"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.002"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chain": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "string"
+                    },
+                    "native": {
+                      "type": "object"
+                    },
+                    "token": {
+                      "type": "object"
+                    }
+                  },
+                  "example": {
+                    "chain": "Base",
+                    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                    "native": {
+                      "symbol": "ETH",
+                      "balance": "1.24031"
+                    },
+                    "token": {
+                      "address": "0x8335...",
+                      "symbol": "USDC",
+                      "decimals": 6,
+                      "balance": "500.0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "description": "EVM wallet address (0x...)",
+            "schema": {
+              "type": "string",
+              "description": "EVM wallet address (0x...)"
+            }
+          },
+          {
+            "name": "chain",
+            "in": "query",
+            "required": false,
+            "description": "Chain to query: base, ethereum, polygon, arbitrum, optimism (default base)",
+            "schema": {
+              "type": "string",
+              "description": "Chain to query: base, ethereum, polygon, arbitrum, optimism (default base)"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "description": "Optional ERC-20 token contract address to also check",
+            "schema": {
+              "type": "string",
+              "description": "Optional ERC-20 token contract address to also check"
+            }
+          }
+        ]
+      }
+    },
+    "/api/gas-price": {
+      "get": {
+        "operationId": "getGasPrice",
+        "summary": "Gas Price Oracle — current gas + EIP-1559 estimate",
+        "description": "Current gas price and EIP-1559 fee estimate for a chain (base, ethereum, polygon, arbitrum, optimism).",
+        "tags": [
+          "gas",
+          "ethereum",
+          "on-chain",
+          "blockchain",
+          "fees"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.001"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chain": {
+                      "type": "string"
+                    },
+                    "nativeSymbol": {
+                      "type": "string"
+                    },
+                    "gasPriceGwei": {
+                      "type": "number"
+                    },
+                    "maxFeePerGasGwei": {
+                      "type": "number"
+                    },
+                    "maxPriorityFeePerGasGwei": {
+                      "type": "number"
+                    }
+                  },
+                  "example": {
+                    "chain": "Base",
+                    "nativeSymbol": "ETH",
+                    "gasPriceGwei": 0.012,
+                    "maxFeePerGasGwei": 0.015,
+                    "maxPriorityFeePerGasGwei": 0.001
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "query",
+            "required": false,
+            "description": "Chain to query: base, ethereum, polygon, arbitrum, optimism (default base)",
+            "schema": {
+              "type": "string",
+              "description": "Chain to query: base, ethereum, polygon, arbitrum, optimism (default base)"
+            }
+          }
+        ]
+      }
+    },
+    "/api/ens-resolve": {
+      "get": {
+        "operationId": "getEnsResolve",
+        "summary": "ENS Resolver — name ↔ address resolution",
+        "description": "Resolve an ENS name to an address, or reverse-resolve an address to its primary ENS name.",
+        "tags": [
+          "ens",
+          "ethereum",
+          "on-chain",
+          "identity",
+          "domains"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.002"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "name": "vitalik.eth",
+                    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "description": "ENS name to resolve, e.g. \"vitalik.eth\"",
+            "schema": {
+              "type": "string",
+              "description": "ENS name to resolve, e.g. \"vitalik.eth\""
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "description": "EVM address to reverse-resolve to its primary ENS name",
+            "schema": {
+              "type": "string",
+              "description": "EVM address to reverse-resolve to its primary ENS name"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
