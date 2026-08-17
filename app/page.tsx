@@ -1,6 +1,9 @@
-import styles from "./page.module.css";
-
-type Endpoint = { path: string; desc: string; price: string; meta?: string };
+import CursorGlow from "./components/CursorGlow";
+import GridBackground from "./components/GridBackground";
+import PacketFlowDemo from "./components/PacketFlowDemo";
+import HowItWorksSection from "./components/HowItWorksSection";
+import EndpointGrid from "./components/EndpointGrid";
+import type { Endpoint } from "./components/EndpointCard";
 
 const FLAGSHIP_ENDPOINTS: (Endpoint & { tag: string })[] = [
   {
@@ -8,44 +11,117 @@ const FLAGSHIP_ENDPOINTS: (Endpoint & { tag: string })[] = [
     tag: "Middleware",
     desc: "Whole-route protection gated by proxy.ts before the page ever renders.",
     price: "fixed",
+    params: [],
   },
   {
     path: "/api/weather",
     tag: "Fixed price",
     desc: "Live current weather for any city, sourced from Open-Meteo. Settles only on a successful lookup.",
     price: "$0.001",
+    params: [{ name: "city", example: "Austin" }],
   },
   {
     path: "/api/generate",
     tag: "Usage-based",
     desc: "Buyer authorizes a max in one signature; you charge only for the output actually generated.",
     price: "up to $0.05",
+    params: [{ name: "prompt", example: "explain x402 in one paragraph" }],
   },
   {
     path: "/api/insights",
     tag: "Dynamic price",
     desc: "Price is computed per-request from a tier query param instead of fixed at route definition.",
     price: "$0.001 / $0.005",
+    params: [
+      { name: "tier", example: "premium" },
+      { name: "topic", example: "ai agents" },
+    ],
   },
   {
     path: "/api/ping",
     tag: "Batch settlement",
     desc: "Cheap repeatable calls accumulate in one payment channel, settled on a schedule instead of per-call.",
     price: "~$0.006",
+    params: [],
   },
 ];
 
 const DATA_ENDPOINTS: Endpoint[] = [
-  { path: "/api/polymarket-markets", desc: "Search/list Polymarket prediction markets by volume", price: "$0.003" },
-  { path: "/api/polymarket-market", desc: "Single Polymarket market detail by slug", price: "$0.002" },
-  { path: "/api/kalshi-markets", desc: "Search/list open Kalshi prediction markets", price: "$0.003" },
-  { path: "/api/kalshi-market", desc: "Single Kalshi market detail by ticker", price: "$0.002" },
-  { path: "/api/defi-tvl", desc: "DeFi protocol TVL, by chain + market cap", price: "$0.003" },
-  { path: "/api/defi-chains", desc: "Rank blockchains by total DeFi TVL", price: "$0.002" },
-  { path: "/api/crypto-price", desc: "Price + 24h change for one or more coins", price: "$0.001" },
-  { path: "/api/crypto-market", desc: "Rich market data: rank, volume, ATH, and more", price: "$0.002" },
-  { path: "/api/crypto-trending", desc: "Top trending cryptocurrencies right now", price: "$0.001" },
-  { path: "/api/web-search", desc: "Instant-answer web search: abstracts + related topics", price: "$0.003" },
+  {
+    path: "/api/polymarket-markets",
+    desc: "Search/list Polymarket prediction markets by volume",
+    price: "$0.003",
+    params: [
+      { name: "q", example: "election" },
+      { name: "limit", example: "10" },
+    ],
+  },
+  {
+    path: "/api/polymarket-market",
+    desc: "Single Polymarket market detail by slug",
+    price: "$0.002",
+    params: [{ name: "slug", example: "will-btc-hit-100k", required: true }],
+  },
+  {
+    path: "/api/kalshi-markets",
+    desc: "Search/list open Kalshi prediction markets",
+    price: "$0.003",
+    params: [
+      { name: "q", example: "fed" },
+      { name: "limit", example: "10" },
+    ],
+  },
+  {
+    path: "/api/kalshi-market",
+    desc: "Single Kalshi market detail by ticker",
+    price: "$0.002",
+    params: [{ name: "ticker", example: "FED-24DEC", required: true }],
+  },
+  {
+    path: "/api/defi-tvl",
+    desc: "DeFi protocol TVL, by chain + market cap",
+    price: "$0.003",
+    params: [{ name: "protocol", example: "aave", required: true }],
+  },
+  {
+    path: "/api/defi-chains",
+    desc: "Rank blockchains by total DeFi TVL",
+    price: "$0.002",
+    params: [{ name: "limit", example: "15" }],
+  },
+  {
+    path: "/api/crypto-price",
+    desc: "Price + 24h change for one or more coins",
+    price: "$0.001",
+    params: [
+      { name: "ids", example: "bitcoin,ethereum", required: true },
+      { name: "vs", example: "usd" },
+    ],
+  },
+  {
+    path: "/api/crypto-market",
+    desc: "Rich market data: rank, volume, ATH, and more",
+    price: "$0.002",
+    params: [
+      { name: "ids", example: "bitcoin,ethereum", required: true },
+      { name: "vs", example: "usd" },
+    ],
+  },
+  {
+    path: "/api/crypto-trending",
+    desc: "Top trending cryptocurrencies right now",
+    price: "$0.001",
+    params: [],
+  },
+  {
+    path: "/api/web-search",
+    desc: "Real ranked web search (Exa): title, URL, published date, relevance score",
+    price: "$0.003",
+    params: [
+      { name: "q", example: "Base blockchain", required: true },
+      { name: "numResults", example: "5" },
+    ],
+  },
 ];
 
 const ONCHAIN_ENDPOINTS: Endpoint[] = [
@@ -54,21 +130,33 @@ const ONCHAIN_ENDPOINTS: Endpoint[] = [
     desc: "Safelisted read-only JSON-RPC proxy across five chains",
     price: "$0.003",
     meta: "eth_call, eth_getBalance, eth_blockNumber, and more",
+    params: [
+      { name: "method", example: "eth_blockNumber", required: true },
+      { name: "chain", example: "base" },
+      { name: "params", example: "[]" },
+    ],
   },
   {
     path: "/api/wallet-balance",
     desc: "Native + optional ERC-20 token balance for any address",
     price: "$0.002",
+    params: [
+      { name: "address", example: "0xd8dA...6045", required: true },
+      { name: "chain", example: "base" },
+      { name: "token", example: "0x8335...0913" },
+    ],
   },
   {
     path: "/api/gas-price",
     desc: "Current gas price + EIP-1559 fee estimate",
     price: "$0.001",
+    params: [{ name: "chain", example: "base" }],
   },
   {
     path: "/api/ens-resolve",
     desc: "ENS name ⇄ address resolution",
     price: "$0.002",
+    params: [{ name: "name", example: "vitalik.eth" }],
   },
 ];
 
@@ -77,273 +165,224 @@ const TOTAL_ENDPOINTS = FLAGSHIP_ENDPOINTS.length + DATA_ENDPOINTS.length + ONCH
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <div className={styles.backdrop} aria-hidden="true" />
+    <div className="relative isolate flex min-h-screen flex-col">
+      <GridBackground />
+      <CursorGlow />
 
-      <header className={styles.nav}>
-        <a href="#top" className={styles.brand}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.png" alt="" className={styles.brandIcon} />
-          x402tap
-        </a>
-        <nav className={styles.navLinks}>
-          <a href="#endpoints">Endpoints</a>
-          <a href="#how-it-works" className={styles.navExtra}>
-            How it works
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-bg/70 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+          <a href="#top" className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.png" alt="" className="h-6 w-6 rounded-md" />
+            x402tap
           </a>
-          <a href="https://docs.x402.org" target="_blank" rel="noreferrer" className={styles.navExtra}>
-            x402 docs
-          </a>
-          <span className={`${styles.liveBadge} ${styles.navLive}`}>
-            <span className={styles.pulseDot} />
-            Live on Base mainnet
-          </span>
-        </nav>
+          <nav className="flex items-center gap-5 text-sm text-text-secondary">
+            <a href="#endpoints" className="transition-colors hover:text-text-primary">
+              Endpoints
+            </a>
+            <a
+              href="#how-it-works"
+              className="hidden transition-colors hover:text-text-primary min-[560px]:inline"
+            >
+              How it works
+            </a>
+            <a
+              href="https://docs.x402.org"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden transition-colors hover:text-text-primary min-[560px]:inline"
+            >
+              x402 docs
+            </a>
+            <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-success/30 bg-success-soft px-2.5 py-1 text-xs font-medium text-success">
+              <span className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-success" />
+              <span className="min-[420px]:hidden">Live</span>
+              <span className="hidden min-[420px]:inline">Live on Base mainnet</span>
+            </span>
+          </nav>
+        </div>
       </header>
 
-      <main id="top">
-        <section className={styles.shell}>
-          <div className={styles.hero}>
-            <span className={styles.eyebrow}>
-              <span className={styles.pulseDot} />
-              x402 payment protocol · Base + Solana
-            </span>
+      <main id="top" className="relative z-10 flex-1">
+        <section className="mx-auto max-w-6xl px-5 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-24">
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface px-3 py-1 text-xs font-medium text-text-secondary">
+                <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-accent" />
+                x402 payment protocol · Base + Solana
+              </span>
 
-            <h1 className={styles.heroTitle}>
-              APIs your agent can <span className={styles.accentText}>pay for by the request.</span>
-            </h1>
+              <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight text-text-primary sm:text-5xl lg:text-[3.4rem]">
+                APIs your agent can{" "}
+                <span className="bg-gradient-to-r from-accent-strong via-accent to-purple bg-clip-text text-transparent">
+                  pay for by the request.
+                </span>
+              </h1>
 
-            <p className={styles.heroSubtitle}>
-              No API keys, no signups, no subscriptions. Every route here is metered in USDC —
-              call it, get an HTTP 402 with the price, sign a payment, and the data comes back.
-              Built on the open x402 protocol and discoverable through the CDP Bazaar.
-            </p>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
+                No API keys, no signups, no subscriptions. Every route here is metered in USDC —
+                call it, get an HTTP 402 with the price, sign a payment, and the data comes back.
+                Built on the open x402 protocol and discoverable through the CDP Bazaar.
+              </p>
 
-            <div className={styles.heroActions}>
-              <a href="#endpoints" className={styles.btnPrimary}>
-                Browse {TOTAL_ENDPOINTS} endpoints
-              </a>
-              <a href="https://docs.x402.org" target="_blank" rel="noreferrer" className={styles.btnSecondary}>
-                Read the x402 docs
-              </a>
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <a
+                  href="#endpoints"
+                  className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-accent/20 transition-colors hover:bg-accent-strong"
+                >
+                  Browse {TOTAL_ENDPOINTS} endpoints
+                </a>
+                <a
+                  href="https://docs.x402.org"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:border-accent-border hover:text-accent-strong"
+                >
+                  Read the x402 docs
+                </a>
+              </div>
+
+              <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
+                {[
+                  { value: String(TOTAL_ENDPOINTS), label: "Monetized routes" },
+                  { value: "$0.001–$0.05", label: "Per-call price range" },
+                  { value: "EVM + SOL", label: "Payment networks" },
+                  { value: "0", label: "API keys required" },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <div className="font-mono text-xl font-semibold text-text-primary sm:text-2xl">{s.value}</div>
+                    <div className="mt-1 text-xs text-text-muted">{s.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className={styles.statRow}>
-              <div className={styles.statCell}>
-                <span className={styles.statValue}>{TOTAL_ENDPOINTS}</span>
-                <span className={styles.statLabel}>Monetized routes</span>
-              </div>
-              <div className={styles.statCell}>
-                <span className={styles.statValue}>$0.001–$0.05</span>
-                <span className={styles.statLabel}>Per-call price range</span>
-              </div>
-              <div className={styles.statCell}>
-                <span className={styles.statValue}>EVM + SOL</span>
-                <span className={styles.statLabel}>Payment networks</span>
-              </div>
-              <div className={styles.statCell}>
-                <span className={styles.statValue}>0</span>
-                <span className={styles.statLabel}>API keys required</span>
-              </div>
+            <div className="animate-float-slow">
+              <PacketFlowDemo />
             </div>
           </div>
         </section>
 
-        <section className={styles.section} id="how-it-works">
-          <div className={styles.shell}>
-            <div className={styles.sectionHead}>
-              <span className={styles.sectionKicker}>How it works</span>
-              <h2 className={styles.sectionTitle}>Three requests, no dashboard</h2>
-              <p className={styles.sectionDesc}>
+        <section className="border-t border-border/60 py-16 sm:py-24" id="how-it-works">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="mb-10 max-w-2xl sm:mb-14">
+              <span className="text-xs font-semibold uppercase tracking-wider text-accent-strong">How it works</span>
+              <h2 className="mt-2 text-2xl font-semibold text-text-primary sm:text-3xl">Three requests, no dashboard</h2>
+              <p className="mt-3 text-sm leading-relaxed text-text-secondary sm:text-base">
                 x402 turns HTTP 402 Payment Required from a dead status code into a working
-                payment flow. There&apos;s nothing to configure before your first call.
+                payment flow. There&apos;s nothing to configure before your first call. Scroll to
+                watch each step highlight the matching part of the exchange.
               </p>
             </div>
 
-            <div className={styles.stepsGrid}>
-              <div className={styles.steps}>
-                <div className={styles.step}>
-                  <span className={styles.stepNum}>1</span>
-                  <div className={styles.stepBody}>
-                    <h3>Call the endpoint</h3>
-                    <p>No payment attached, so the server replies 402 with the exact price and payment instructions.</p>
-                  </div>
-                </div>
-                <div className={styles.step}>
-                  <span className={styles.stepNum}>2</span>
-                  <div className={styles.stepBody}>
-                    <h3>Sign a payment</h3>
-                    <p>Your wallet (or agent&apos;s x402 client) signs a USDC payment for that exact amount — no on-chain transaction yet.</p>
-                  </div>
-                </div>
-                <div className={styles.step}>
-                  <span className={styles.stepNum}>3</span>
-                  <div className={styles.stepBody}>
-                    <h3>Retry and get paid data</h3>
-                    <p>Resend the request with the signed payment attached. The route runs, settles on success, and returns the response.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.terminal}>
-                <div className={styles.terminalHead}>
-                  <span className={styles.terminalDot} />
-                  <span className={styles.terminalDot} />
-                  <span className={styles.terminalDot} />
-                  <span className={styles.terminalLabel}>curl</span>
-                </div>
-                <div className={styles.terminalBody}>
-                  <span className={styles.comment}># 1. call without payment</span>
-                  {"\n"}
-                  <span className={styles.cmd}>curl https://x402tap.com/api/weather?city=Austin</span>
-                  {"\n\n"}
-                  <span className={styles.key}>HTTP/1.1</span> 402 Payment Required
-                  {"\n"}
-                  <span className={styles.key}>payment-required</span>: {"{"} <span className={styles.str}>&quot;accepts&quot;</span>: [{"{"} <span className={styles.str}>&quot;price&quot;</span>: <span className={styles.str}>&quot;$0.001&quot;</span>, ... {"}"}] {"}"}
-                  {"\n\n"}
-                  <span className={styles.comment}># 2 + 3. sign + retry (handled by an x402 client)</span>
-                  {"\n"}
-                  <span className={styles.cmd}>npx @x402/fetch https://x402tap.com/api/weather?city=Austin</span>
-                  {"\n\n"}
-                  <span className={styles.key}>HTTP/1.1</span> 200 OK
-                  {"\n"}
-                  {"{"} <span className={styles.str}>&quot;location&quot;</span>: <span className={styles.str}>&quot;Austin, Texas&quot;</span>, <span className={styles.str}>&quot;report&quot;</span>: {"{"} ... {"}"} {"}"}
-                </div>
-              </div>
-            </div>
+            <HowItWorksSection />
           </div>
         </section>
 
-        <section className={styles.section} id="endpoints">
-          <div className={styles.shell}>
-            <div className={styles.sectionHead}>
-              <span className={styles.sectionKicker}>Endpoints</span>
-              <h2 className={styles.sectionTitle}>Everything this server sells</h2>
-              <p className={styles.sectionDesc}>
-                Every route accepts <code>GET</code> requests, prices in USDC, settles only after a
-                successful response, and declares Bazaar discovery metadata so agents can find it
-                without reading docs first.
+        <section className="border-t border-border/60 py-16 sm:py-24" id="endpoints">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="mb-10 max-w-2xl sm:mb-14">
+              <span className="text-xs font-semibold uppercase tracking-wider text-accent-strong">Endpoints</span>
+              <h2 className="mt-2 text-2xl font-semibold text-text-primary sm:text-3xl">Everything this server sells</h2>
+              <p className="mt-3 text-sm leading-relaxed text-text-secondary sm:text-base">
+                Every route accepts <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-xs">GET</code>{" "}
+                requests, prices in USDC, settles only after a successful response, and declares
+                Bazaar discovery metadata so agents can find it without reading docs first.
               </p>
             </div>
 
-            <div className={styles.categoryBlock}>
-              <div className={styles.categoryHead}>
-                <span className={styles.categoryTitle}>
-                  Flagship examples
-                  <span className={styles.categoryCount}>{FLAGSHIP_ENDPOINTS.length}</span>
+            <div className="mb-14">
+              <div className="mb-4 flex items-baseline gap-2">
+                <h3 className="text-sm font-semibold text-text-primary">Flagship examples</h3>
+                <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
+                  {FLAGSHIP_ENDPOINTS.length}
                 </span>
               </div>
-              <p className={styles.categoryDesc} style={{ marginBottom: "1rem" }}>
+              <p className="mb-4 max-w-2xl text-sm text-text-secondary">
                 Each demonstrates a different x402 payment pattern — fixed price, usage-based,
                 dynamic pricing, and payment channels.
               </p>
-              <div className={styles.cardGrid}>
-                {FLAGSHIP_ENDPOINTS.map((e) => (
-                  <div key={e.path} className={`${styles.card} ${styles.flagshipCard}`}>
-                    <span className={styles.flagshipTag}>{e.tag}</span>
-                    <div className={styles.cardTop}>
-                      <span className={styles.cardRoute}>{e.path}</span>
-                      <span className={styles.price}>{e.price}</span>
-                    </div>
-                    <p className={styles.cardDesc}>{e.desc}</p>
-                  </div>
-                ))}
-              </div>
+              <EndpointGrid endpoints={FLAGSHIP_ENDPOINTS} flagship />
             </div>
 
-            <div className={styles.categoryBlock}>
-              <div className={styles.categoryHead}>
-                <span className={styles.categoryTitle}>
-                  Data endpoints
-                  <span className={styles.categoryCount}>{DATA_ENDPOINTS.length}</span>
+            <div className="mb-14">
+              <div className="mb-4 flex items-baseline gap-2">
+                <h3 className="text-sm font-semibold text-text-primary">Data endpoints</h3>
+                <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
+                  {DATA_ENDPOINTS.length}
                 </span>
               </div>
-              <p className={styles.categoryDesc} style={{ marginBottom: "1rem" }}>
+              <p className="mb-4 max-w-2xl text-sm text-text-secondary">
                 Prediction markets, DeFi, crypto market data, and web search — the categories
                 driving the most real usage across the x402 ecosystem today.
               </p>
-              <div className={styles.cardGrid}>
-                {DATA_ENDPOINTS.map((e) => (
-                  <div key={e.path} className={styles.card}>
-                    <div className={styles.cardTop}>
-                      <span className={styles.cardRoute}>{e.path}</span>
-                      <span className={styles.price}>{e.price}</span>
-                    </div>
-                    <p className={styles.cardDesc}>{e.desc}</p>
-                  </div>
-                ))}
-              </div>
+              <EndpointGrid endpoints={DATA_ENDPOINTS} />
             </div>
 
-            <div className={styles.categoryBlock}>
-              <div className={styles.categoryHead}>
-                <span className={styles.categoryTitle}>
-                  On-chain data
-                  <span className={styles.categoryCount}>{ONCHAIN_ENDPOINTS.length}</span>
+            <div>
+              <div className="mb-4 flex items-baseline gap-2">
+                <h3 className="text-sm font-semibold text-text-primary">On-chain data</h3>
+                <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
+                  {ONCHAIN_ENDPOINTS.length}
                 </span>
               </div>
-              <p className={styles.categoryDesc} style={{ marginBottom: "1rem" }}>
+              <p className="mb-4 max-w-2xl text-sm text-text-secondary">
                 Multi-chain reads across {CHAINS.join(", ")} — balances, gas prices, ENS, and a
                 safelisted read-only RPC proxy, all built on free public nodes.
               </p>
-              <div className={styles.cardGrid}>
-                {ONCHAIN_ENDPOINTS.map((e) => (
-                  <div key={e.path} className={styles.card}>
-                    <div className={styles.cardTop}>
-                      <span className={styles.cardRoute}>{e.path}</span>
-                      <span className={styles.price}>{e.price}</span>
-                    </div>
-                    <p className={styles.cardDesc}>{e.desc}</p>
-                    {e.meta && <p className={styles.cardMeta}>{e.meta}</p>}
-                  </div>
-                ))}
-              </div>
+              <EndpointGrid endpoints={ONCHAIN_ENDPOINTS} />
             </div>
           </div>
         </section>
       </main>
 
-      <footer className={styles.footer}>
-        <div className={styles.shell}>
-          <div className={styles.footerTop}>
-            <div className={styles.footerBrand}>
-              <div className={styles.footerBrandRow}>
+      <footer className="relative z-10 border-t border-border/60 py-12">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="grid gap-10 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icon.png" alt="" className={styles.brandIcon} />
+                <img src="/icon.png" alt="" className="h-6 w-6 rounded-md" />
                 x402tap
               </div>
-              <p>
+              <p className="mt-3 max-w-sm text-sm leading-relaxed text-text-secondary">
                 A pay-per-request API server built on the x402 protocol. Every route settles
                 on-chain in USDC — no accounts, no API keys, no subscriptions.
               </p>
             </div>
 
-            <div className={styles.footerCols}>
-              <div className={styles.footerCol}>
-                <span className={styles.footerColTitle}>Protocol</span>
-                <a href="https://docs.x402.org" target="_blank" rel="noreferrer">
+            <div className="grid grid-cols-2 gap-8">
+              <div className="flex flex-col gap-2.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">Protocol</span>
+                <a href="https://docs.x402.org" target="_blank" rel="noreferrer" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
                   x402 documentation
                 </a>
-                <a href="https://docs.cdp.coinbase.com/x402/bazaar" target="_blank" rel="noreferrer">
+                <a href="https://docs.cdp.coinbase.com/x402/bazaar" target="_blank" rel="noreferrer" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
                   CDP Bazaar
                 </a>
-                <a href="https://x402-list.com" target="_blank" rel="noreferrer">
+                <a href="https://x402-list.com" target="_blank" rel="noreferrer" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
                   x402-list.com directory
                 </a>
               </div>
-              <div className={styles.footerCol}>
-                <span className={styles.footerColTitle}>This server</span>
-                <a href="#endpoints">All endpoints</a>
-                <a href="#how-it-works">How it works</a>
-                <a href="/protected">Protected page example</a>
+              <div className="flex flex-col gap-2.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">This server</span>
+                <a href="#endpoints" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
+                  All endpoints
+                </a>
+                <a href="#how-it-works" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
+                  How it works
+                </a>
+                <a href="/protected" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
+                  Protected page example
+                </a>
               </div>
             </div>
           </div>
 
-          <div className={styles.footerBottom}>
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-text-muted">
             <span>x402tap.com — settled on Base mainnet</span>
-            <span className={styles.liveBadge}>
-              <span className={styles.pulseDot} />
+            <span className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2.5 py-1 font-medium text-success">
+              <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-success" />
               {TOTAL_ENDPOINTS} routes live
             </span>
           </div>

@@ -1,26 +1,78 @@
-:root {
-  --bg: #090b10;
-  --bg-elevated: #10131b;
-  --surface: #12151f;
-  --surface-hover: #171b27;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+@import "tailwindcss";
 
-  --text-primary: #f3f5fa;
-  --text-secondary: #a3aabd;
-  --text-muted: #6c7488;
+@theme {
+  --color-bg: #090b10;
+  --color-bg-elevated: #10131b;
+  --color-surface: #12151f;
+  --color-surface-hover: #171b27;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
 
-  --accent: #3d7bff;
-  --accent-strong: #5b8fff;
-  --accent-soft: rgba(61, 123, 255, 0.12);
-  --accent-border: rgba(61, 123, 255, 0.35);
+  --color-text-primary: #f3f5fa;
+  --color-text-secondary: #a3aabd;
+  --color-text-muted: #6c7488;
 
-  --success: #22c58b;
-  --success-soft: rgba(34, 197, 139, 0.12);
+  --color-accent: #3d7bff;
+  --color-accent-strong: #5b8fff;
+  --color-accent-soft: rgba(61, 123, 255, 0.12);
+  --color-accent-border: rgba(61, 123, 255, 0.35);
+
+  --color-success: #22c58b;
+  --color-success-soft: rgba(34, 197, 139, 0.12);
+
+  --color-danger: #ef4a5f;
+  --color-danger-soft: rgba(239, 74, 95, 0.12);
+
+  --color-purple: #a374ff;
+  --color-purple-soft: rgba(163, 116, 255, 0.12);
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
+  --animate-border-beam: border-beam 3.2s linear infinite;
+  --animate-pulse-dot: pulse-dot 1.8s ease-in-out infinite;
+  --animate-float-slow: float-slow 7s ease-in-out infinite;
+  --animate-grid-drift: grid-drift 22s linear infinite;
+
+  @keyframes border-beam {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.45;
+      transform: scale(0.85);
+    }
+  }
+  @keyframes float-slow {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -8px, 0);
+    }
+  }
+  @keyframes grid-drift {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 64px 64px;
+    }
+  }
+}
+
+:root {
   color-scheme: dark;
 }
 
@@ -38,8 +90,8 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--text-primary);
-  background: var(--bg);
+  color: var(--color-text-primary);
+  background: var(--color-bg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -47,8 +99,17 @@ body {
 
 * {
   box-sizing: border-box;
-  padding: 0;
+}
+
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+figure {
   margin: 0;
+  padding: 0;
 }
 
 a {
@@ -59,4 +120,17 @@ a {
 code,
 pre {
   font-family: var(--font-mono);
+}
+
+/* Respect reduced-motion preferences: collapse every custom animation to a
+   near-instant transition rather than disabling motion feedback entirely. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
