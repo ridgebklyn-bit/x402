@@ -24,11 +24,21 @@ const pingRouteConfig: RouteConfig = {
     // batches — see the comment above). But agentic.market's Bazaar
     // validator rejects "batch-settlement" as an unrecognized scheme for its
     // payment-requirements check ("Scheme is 'batch-settlement' — must be
-    // 'exact' or 'upto'"), which meant this route was failing indexing
-    // entirely. Adding a plain "exact" fallback alongside it gives buyers
-    // (and validators) a scheme they recognize, while batch-settlement stays
-    // available for anyone whose client supports it.
+    // 'exact' or 'upto'"). Adding a plain "exact" fallback got the entry
+    // counted ("Found 2 payment method(s) in accepts array") but the scheme
+    // check still failed against "batch-settlement" specifically — the
+    // validator appears to check only the first entry in the array, not
+    // "at least one is valid". Re-ordering so "exact" is first, on the
+    // theory the validator (and possibly some buyer clients) treat accepts[0]
+    // as the primary/default offer. batch-settlement stays available as the
+    // second option for any client that supports channels.
     accepts: [
+      {
+        scheme: "exact",
+        price: "$0.001",
+        network: EVM_NETWORK,
+        payTo: evmAddress,
+      },
       {
         scheme: "batch-settlement",
         // The client's BatchSettlementEvmScheme computes the channel deposit
@@ -40,12 +50,6 @@ const pingRouteConfig: RouteConfig = {
         // safely above the observed threshold.
         price: "$0.001", // per-call maximum charged against the channel
         network: BATCH_NETWORK,
-        payTo: evmAddress,
-      },
-      {
-        scheme: "exact",
-        price: "$0.001",
-        network: EVM_NETWORK,
         payTo: evmAddress,
       },
     ],
