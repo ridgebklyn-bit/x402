@@ -174,7 +174,7 @@ export default function Home() {
           <a href="#top" className="flex items-center gap-2 text-sm font-semibold text-text-primary">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="h-6 w-6 rounded-md" />
-            x402tap
+            MicroTap
           </a>
           <nav className="flex items-center gap-5 text-sm text-text-secondary">
             <a href="#endpoints" className="transition-colors hover:text-text-primary">
@@ -343,7 +343,7 @@ export default function Home() {
               <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/icon.png" alt="" className="h-6 w-6 rounded-md" />
-                x402tap
+                MicroTap
               </div>
               <p className="mt-3 max-w-sm text-sm leading-relaxed text-text-secondary">
                 A pay-per-request API server built on the x402 protocol. Every route settles
@@ -380,7 +380,7 @@ export default function Home() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-text-muted">
-            <span>x402tap.com — settled on Base mainnet</span>
+            <span>MicroTap · x402tap.com — settled on Base mainnet</span>
             <span className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2.5 py-1 font-medium text-success">
               <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-success" />
               {TOTAL_ENDPOINTS} routes live

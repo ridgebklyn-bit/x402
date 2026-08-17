@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "x402tap — pay-per-call API marketplace",
+    "title": "MicroTap — pay-per-call API marketplace",
     "version": "1.0.0",
     "description": "19 monetized HTTP APIs on the x402 protocol — prediction markets (Polymarket, Kalshi), DeFi/crypto data, multi-chain on-chain reads, live weather, and real-time web search. No API keys or signups: call any route, receive an HTTP 402 with the exact USDC price, sign a payment, retry, and get the data back. Payments settle on Base or Solana mainnet through Coinbase's CDP Facilitator.",
     "x-guidance": "Every route on this server is a standard GET endpoint that returns HTTP 402 Payment Required when called without payment. The 402 response body's `accepts` array lists the exact USDC amount, network (Base or Solana), and payTo address — sign a payment matching one of those entries and retry the same request with the payment attached (e.g. via @x402/fetch's wrapFetchWithPayment, or any x402-compatible client) to receive the real response. Prices range from $0.001 to $0.05 per call. Query parameters are documented per-operation below; most routes have sensible defaults and can be called with zero or one parameter. No account, API key, or signup is required — payment alone is the access control.",
