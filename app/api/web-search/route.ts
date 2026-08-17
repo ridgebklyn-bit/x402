@@ -36,18 +36,34 @@ const flattenTopics = (topics: RelatedTopic[] | undefined, limit: number): { tex
 const handler = async (request: NextRequest): Promise<NextResponse> => {
   const q = requireParam(request, "q");
 
-  let res: Response;
-  try {
-    res = await fetch(
-      `https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`,
-      { signal: AbortSignal.timeout(8000) },
-    );
-  } catch {
-    throw new RouteError("DuckDuckGo upstream is unavailable right now", 502);
-  }
-  if (!res.ok) throw new RouteError("DuckDuckGo upstream returned an error", 502);
+  const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`;
 
-  const data = (await res.json()) as DuckDuckGoResponse;
+  // DuckDuckGo's Instant Answer API occasionally returns a 2xx with an empty
+  // body on a "cold" (uncached) query — retry once before giving up, since a
+  // second request for the same query typically returns real content.
+  const fetchDdg = async (): Promise<string | null> => {
+    let res: Response;
+    try {
+      res = await fetch(ddgUrl, { signal: AbortSignal.timeout(8000) });
+    } catch {
+      return null;
+    }
+    if (!res.ok) return null;
+    const text = await res.text();
+    return text.trim().length > 0 ? text : null;
+  };
+
+  const raw = (await fetchDdg()) ?? (await fetchDdg());
+  if (!raw) {
+    throw new RouteError("DuckDuckGo upstream returned an empty or unavailable response — please retry", 502);
+  }
+
+  let data: DuckDuckGoResponse;
+  try {
+    data = JSON.parse(raw) as DuckDuckGoResponse;
+  } catch {
+    throw new RouteError("DuckDuckGo upstream returned a malformed response — please retry", 502);
+  }
 
   return NextResponse.json({
     query: q,
