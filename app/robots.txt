@@ -1,0 +1,4 @@
+﻿User-Agent: *
+Allow: /
+
+Agentmap: https://x402tap.com/.well-known/ai-catalog.json
