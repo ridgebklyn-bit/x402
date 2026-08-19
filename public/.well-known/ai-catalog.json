@@ -1,4 +1,4 @@
-﻿{
+{
   "specVersion": "1.0",
   "host": {
     "displayName": "MicroTap",
@@ -11,7 +11,7 @@
       "displayName": "MicroTap API",
       "type": "application/vnd.oai.openapi+json",
       "url": "https://x402tap.com/openapi.json",
-      "description": "19 monetized HTTP APIs on the x402 protocol — prediction markets (Polymarket, Kalshi), DeFi/crypto data, multi-chain on-chain reads, live weather, and real-time web search. No API keys or signups: call any route, receive an HTTP 402 with the exact USDC price, sign a payment, retry, and get the data back. Payments settle on Base or Solana mainnet through Coinbase's CDP Facilitator.",
+      "description": "20 monetized HTTP APIs on the x402 protocol — prediction markets (Polymarket, Kalshi, plus a cross-platform divergence/arbitrage finder), DeFi/crypto data, multi-chain on-chain reads, live weather, and real-time web search. No API keys or signups: call any route, receive an HTTP 402 with the exact USDC price, sign a payment, retry, and get the data back. Payments settle on Base or Solana mainnet through Coinbase's CDP Facilitator.",
       "tags": [
         "x402",
         "payments",
@@ -19,6 +19,7 @@
         "prediction-markets",
         "polymarket",
         "kalshi",
+        "arbitrage",
         "defi",
         "crypto",
         "on-chain",
@@ -42,6 +43,7 @@
         "getCryptoMarket",
         "getCryptoTrending",
         "getWebSearch",
+        "getPredictionArb",
         "getRpc",
         "getWalletBalance",
         "getGasPrice",
@@ -52,10 +54,11 @@
         "find Polymarket markets about the election",
         "what's Uniswap's current TVL",
         "what's the current gas price on Base",
-        "resolve vitalik.eth to an address"
+        "resolve vitalik.eth to an address",
+        "find the biggest odds divergence between Polymarket and Kalshi right now"
       ],
-      "version": "1.0.0",
-      "updatedAt": "2026-08-18T00:00:00Z",
+      "version": "1.1.0",
+      "updatedAt": "2026-08-19T00:00:00Z",
       "trustManifest": {
         "identity": "https://x402tap.com",
         "identityType": "https"

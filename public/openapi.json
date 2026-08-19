@@ -1639,6 +1639,124 @@
           }
         ]
       }
+    },
+    "/api/prediction-arb": {
+      "get": {
+        "operationId": "getPredictionArb",
+        "summary": "Prediction Market Divergence — cross-platform Polymarket vs. Kalshi signal",
+        "description": "Find prediction-market questions priced differently on Polymarket vs. Kalshi — a cross-platform divergence signal built from data no single-platform competitor has.",
+        "tags": [
+          "prediction-markets",
+          "polymarket",
+          "kalshi",
+          "arbitrage",
+          "crypto",
+          "finance",
+          "trading"
+        ],
+        "security": [],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.005"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "minDivergencePct": {
+                      "type": "number"
+                    },
+                    "count": {
+                      "type": "number"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "matches": {
+                      "type": "array"
+                    }
+                  },
+                  "example": {
+                    "query": null,
+                    "minDivergencePct": 10,
+                    "count": 1,
+                    "note": "Matches are found by keyword-overlap similarity between Polymarket and Kalshi question text, not a verified same-event guarantee — sanity-check a match before treating it as a real cross-platform arbitrage signal.",
+                    "matches": [
+                      {
+                        "matchScore": 0.5,
+                        "divergencePct": 12.4,
+                        "cheaperYesOn": "kalshi",
+                        "polymarket": {
+                          "slug": "example-market",
+                          "question": "Will the Fed cut rates in September?",
+                          "yesProbability": 0.62,
+                          "volume24hr": 45678.9
+                        },
+                        "kalshi": {
+                          "ticker": "KXFED-99",
+                          "title": "Fed cuts rates at September FOMC meeting?",
+                          "subTitle": null,
+                          "yesProbability": 0.496
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Optional keyword filter on the matched question text",
+            "schema": {
+              "type": "string",
+              "description": "Optional keyword filter on the matched question text"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Max matches to return, 1-25 (default 10)",
+            "schema": {
+              "type": "string",
+              "description": "Max matches to return, 1-25 (default 10)"
+            }
+          },
+          {
+            "name": "minDivergencePct",
+            "in": "query",
+            "required": false,
+            "description": "Minimum probability-point divergence to include, 0-100 (default 5)",
+            "schema": {
+              "type": "string",
+              "description": "Minimum probability-point divergence to include, 0-100 (default 5)"
+            }
+          }
+        ]
+      }
     }
   }
 }

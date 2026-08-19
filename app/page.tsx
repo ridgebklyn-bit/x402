@@ -123,6 +123,16 @@ const DATA_ENDPOINTS: Endpoint[] = [
       { name: "numResults", example: "5" },
     ],
   },
+  {
+    path: "/api/prediction-arb",
+    desc: "Finds the same real-world question priced differently on Polymarket vs. Kalshi and ranks by how far the odds diverge",
+    price: "$0.005",
+    params: [
+      { name: "q", example: "election" },
+      { name: "limit", example: "10" },
+      { name: "minDivergencePct", example: "10" },
+    ],
+  },
 ];
 
 const ONCHAIN_ENDPOINTS: Endpoint[] = [
@@ -180,6 +190,9 @@ export default function Home() {
           <nav className="flex items-center gap-5 text-sm text-text-secondary">
             <a href="#endpoints" className="transition-colors hover:text-text-primary">
               Endpoints
+            </a>
+            <a href="#mcp" className="transition-colors hover:text-text-primary">
+              MCP
             </a>
             <a
               href="#how-it-works"
@@ -279,6 +292,68 @@ export default function Home() {
             </div>
 
             <ProtocolPulse />
+          </div>
+        </section>
+
+        <section className="border-t border-border/60 py-16 sm:py-24" id="mcp">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-14">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-accent-strong">
+                  Also ships as an MCP server
+                </span>
+                <h2 className="mt-2 text-2xl font-semibold text-text-primary sm:text-3xl">
+                  microtap-mcp — every route, as a tool call
+                </h2>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-text-secondary sm:text-base">
+                  Skip the HTTP client. <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-xs">microtap-mcp</code>{" "}
+                  wraps this whole catalog as Model Context Protocol tools, so Claude, Cursor, or
+                  any MCP-speaking agent can call, pay for, and read the results of these endpoints
+                  directly inside a conversation — no separate API integration required. Payment
+                  happens the same way: the agent signs, x402 settles on-chain, the data comes back.
+                </p>
+
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <a
+                    href="https://www.npmjs.com/package/microtap-mcp"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-accent/20 transition-colors hover:bg-accent-strong"
+                  >
+                    View on npm
+                  </a>
+                  <a
+                    href="https://github.com/swaltersjrtest/microtap-mcp"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:border-accent-border hover:text-accent-strong"
+                  >
+                    Source on GitHub
+                  </a>
+                </div>
+              </div>
+
+              <div className="animate-float-slow rounded-xl border border-border-strong bg-surface/80 p-5 font-mono text-sm shadow-lg backdrop-blur-sm">
+                <div className="mb-3 flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-danger/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
+                </div>
+                <pre className="whitespace-pre-wrap break-words text-text-secondary">
+                  <span className="text-text-muted"># run directly, no install step</span>{"\n"}
+                  <span className="text-accent-strong">npx</span> -y microtap-mcp{"\n\n"}
+                  <span className="text-text-muted"># or add to your MCP client config</span>{"\n"}
+                  {"{"}{"\n"}
+                  {"  "}&quot;mcpServers&quot;: {"{"}{"\n"}
+                  {"    "}&quot;microtap&quot;: {"{"}{"\n"}
+                  {"      "}&quot;command&quot;: &quot;npx&quot;,{"\n"}
+                  {"      "}&quot;args&quot;: [&quot;-y&quot;, &quot;microtap-mcp&quot;]{"\n"}
+                  {"    "}{"}"}
+                  {"\n  "}{"}"}
+                  {"\n"}{"}"}
+                </pre>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -387,6 +462,9 @@ export default function Home() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">This server</span>
                 <a href="#endpoints" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
                   All endpoints
+                </a>
+                <a href="#mcp" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
+                  microtap-mcp
                 </a>
                 <a href="#how-it-works" className="text-sm text-text-secondary transition-colors hover:text-text-primary">
                   How it works
