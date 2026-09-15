@@ -2,7 +2,7 @@
 
 A Next.js (App Router) server that monetizes routes with the [x402 payment protocol](https://docs.x402.org), following the [Quickstart for Sellers](https://docs.x402.org/getting-started/quickstart-for-sellers#next-js).
 
-**Live deployment:** https://x402tap.com
+**Live deployment:** https://x402tap-seller-server.vercel.app
 
 ## What's here
 
@@ -263,10 +263,15 @@ Each logs a structured line tagged `[x402:verify:...]` / `[x402:settle:...]`, vi
 
 ## Deployment
 
-Deployed to Vercel as project `x402-seller-server` (team: Steven's projects). Vercel Authentication (the SSO wall Vercel puts on new deployments by default) has been turned off for this project so buyers can reach it without a Vercel login — that's a deliberate, one-time change; re-enable it in the Vercel dashboard (Project → Settings → Deployment Protection) if you want to lock it back down.
+Deployed to Vercel as project `x402tap-seller-server` (team: Eds Projects / `eds-projects3`), linked to this GitHub repo (`ridgebklyn-bit/x402`) for automatic deploys on every push to `main`.
 
-To redeploy after making changes, use the Vercel dashboard/CLI, or ask for another deploy.
+Live at:
+- https://x402tap-seller-server.vercel.app
+- https://x402tap-seller-server-eds-projects3.vercel.app
 
+This is a personal fork/build on top of the original x402 seller server template — the payment logic, routes, and pricing described throughout this README are unchanged, but the deployment target, wallet addresses, and any environment-specific config below are mine.
+
+Vercel Authentication (the SSO wall Vercel puts on new deployments by default) may still be on for this project — check Project → Settings → Deployment Protection if buyers report being unable to reach it without a Vercel login.
 ## Project structure
 
 ```
